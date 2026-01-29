@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ဆွမ်းချိုင့် ကုသိုလ်ရှင်စာရင်း</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Myanmar3', 'Pyidaungsu', 'Padauk', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            color: white;
+            font-size: 1.1em;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .tab-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .schedule-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-size: 1.1em;
+        }
+
+        .schedule-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 1.05em;
+        }
+
+        .schedule-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .no-donor {
+            color: #999;
+            font-style: italic;
+        }
+
+        .donor-name {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+            padding: 12px 20px;
+            width: 100%;
+            font-size: 1.1em;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-family: inherit;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .schedule-table {
+                font-size: 0.9em;
+            }
+            
+            .schedule-table th,
+            .schedule-table td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🙏 ဆွမ်းချိုင့် ကုသိုလ်ရှင်စာရင်း 🙏</h1>
+            <p>ကျောင်းသား ကိုရင်များအတွက် ဆွမ်းအုပ်ကုသိုလ်ရှင်များ</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showSection('monthly')">လစဉ်</button>
+            <button class="tab-button" onclick="showSection('english-date')">အင်္ဂလိပ်ရက်စဉ်</button>
+            <button class="tab-button" onclick="showSection('weekly')">အပတ်စဉ်</button>
+            <button class="tab-button" onclick="showSection('all')">စာရင်းအားလုံး</button>
+        </div>
+
+        <div class="content">
+            <input type="text" class="search-box" id="searchBox" placeholder="ကုသိုလ်ရှင်အမည် ရှာရန်..." onkeyup="searchDonors()">
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="number" id="totalDonors">0</div>
+                    <div class="label">စုစုပေါင်း ကုသိုလ်ရှင်</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="monthlyCount">0</div>
+                    <div class="label">လစဉ်</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="weeklyCount">0</div>
+                    <div class="label">အပတ်စဉ်</div>
+                </div>
+            </div>
+
+            <!-- လစဉ် -->
+            <div id="monthly" class="section active">
+                <h2 style="color: #667eea; margin-bottom: 15px;">📅 လစဉ် ဆွမ်းအုပ်ကုသိုလ်ရှင်များ</h2>
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>ရက်</th>
+                            <th>ကုသိုလ်ရှင်များ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthlyTable"></tbody>
+                </table>
+            </div>
+
+            <!-- အင်္ဂလိပ်ရက်စဉ် -->
+            <div id="english-date" class="section">
+                <h2 style="color: #667eea; margin-bottom: 15px;">📆 အင်္ဂလိပ်ရက်စဉ် ဆွမ်းအုပ်ကုသိုလ်ရှင်များ</h2>
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>ရက်</th>
+                            <th>ကုသိုလ်ရှင်များ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="englishDateTable"></tbody>
+                </table>
+            </div>
+
+            <!-- အပတ်စဉ် -->
+            <div id="weekly" class="section">
+                <h2 style="color: #667eea; margin-bottom: 15px;">🗓️ အပတ်စဉ် ဆွမ်းအုပ်ကုသိုလ်ရှင်များ</h2>
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>နေ့</th>
+                            <th>ကုသိုလ်ရှင်များ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="weeklyTable"></tbody>
+                </table>
+            </div>
+
+            <!-- စာရင်းအားလုံး -->
+            <div id="all" class="section">
+                <h2 style="color: #667eea; margin-bottom: 15px;">📋 ကုသိုလ်ရှင် စာရင်းအားလုံး</h2>
+                <div id="allDonorsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const monthlyDonors = [
+            { day: 'လဆန်း ၁', donors: 'ကိုညီညီ + မမေသူ' },
+            { day: 'လဆန်း ၂', donors: 'ကိုမောင်ဇင် + မအေးအေးမိုး' },
+            { day: 'လဆန်း ၃', donors: 'မရှိ' },
+            { day: 'လဆန်း ၄', donors: 'ဦးမြဦး + ဆရာမဒေါ်ခင်မြင့်ရီ' },
+            { day: 'လဆန်း ၅', donors: 'မရှိ' },
+            { day: 'လဆန်း ၆', donors: 'ဒေါ်အိမ်ကြူ' },
+            { day: 'လဆန်း ၇', donors: 'ဦးဇော်ထွန်း' },
+            { day: 'လဆန်း ၈', donors: 'မရှိ' },
+            { day: 'လဆန်း ၉', donors: 'မရှိ' },
+            { day: 'လဆန်း ၁၀', donors: 'ဦးစိုးနိုင် + ဒေါ်မိုးမိုးအေး' },
+            { day: 'လဆန်း ၁၁', donors: 'ဒေါ်အေး' },
+            { day: 'လဆန်း ၁၂', donors: 'ဦးအေးစိုး + ဒေါ်သင်းသင်း' },
+            { day: 'လဆန်း ၁၃', donors: 'ကိုမင်းသန်း + မအေးအေးသန်း' },
+            { day: 'လဆန်း ၁၄', donors: 'မရှိ' },
+            { day: 'လဆန်း ၁၅', donors: 'ဦးပါလာ + ဒေါ်အေးစံ' },
+            { day: 'လပြည့်ကျော် ၁', donors: 'အငယ်လေး ညီမ' }
+        ];
+
+        const englishDateDonors = [
+            { day: 'အင်္ဂလိပ်ရက် ၁၀', donors: 'ဦးကျော်မြင့် + ဒေါ်မြင့်မြင့်ဦး (ကွမ်းဆိုင်)' },
+            { day: 'အင်္ဂလိပ်ရက် ၁၂', donors: 'မနွဲ့ရီဝင်း' }
+        ];
+
+        const weeklyDonors = [
+            { day: 'တနင်္လာ/အင်္ဂါ', donors: 'ကိုစိုးသက်အောင် + မခင်သူဇာလွင်', note: '(အဆင်ပြေတဲ့ရက် တစ်ရက်သာ ပို့ရသည်)' },
+            { day: 'ဗုဒ္ဓဟူး', donors: 'ကိုစိုးထက် + မသင်းသင်းလှိုင်' },
+            { day: 'ကြာသပတေး', donors: 'ကိုသန်းနိုင်ဦး + မသန္တာ' },
+            { day: 'သောကြာ', donors: 'ဦးဝဏ္ဏစိုး + ဒေါ်ခင်သန်းခိုင်' },
+            { day: 'စနေ', donors: 'ဒေါ်ဝင်း' },
+            { day: 'တနင်္ဂနွေ', donors: 'ကိုအောင်လေး + မပုံ့ပုံ့' }
+        ];
+
+        function renderMonthlyTable() {
+            const tbody = document.getElementById('monthlyTable');
+            tbody.innerHTML = monthlyDonors.map(item => `
+                <tr>
+                    <td style="font-weight: bold;">${item.day}</td>
+                    <td class="${item.donors === 'မရှိ' ? 'no-donor' : 'donor-name'}">${item.donors}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderEnglishDateTable() {
+            const tbody = document.getElementById('englishDateTable');
+            tbody.innerHTML = englishDateDonors.map(item => `
+                <tr>
+                    <td style="font-weight: bold;">${item.day}</td>
+                    <td class="donor-name">${item.donors}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderWeeklyTable() {
+            const tbody = document.getElementById('weeklyTable');
+            tbody.innerHTML = weeklyDonors.map(item => `
+                <tr>
+                    <td style="font-weight: bold;">${item.day}</td>
+                    <td>
+                        <span class="donor-name">${item.donors}</span>
+                        ${item.note ? `<br><span style="color: #ff6b6b; font-size: 0.9em;">${item.note}</span>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAllDonors() {
+            const allDonors = new Set();
+            
+            monthlyDonors.forEach(item => {
+                if (item.donors !== 'မရှိ') {
+                    item.donors.split('+').forEach(donor => allDonors.add(donor.trim()));
+                }
+            });
+            
+            englishDateDonors.forEach(item => {
+                item.donors.split('+').forEach(donor => allDonors.add(donor.trim()));
+            });
+            
+            weeklyDonors.forEach(item => {
+                item.donors.split('+').forEach(donor => allDonors.add(donor.trim()));
+            });
+
+            const sortedDonors = Array.from(allDonors).sort();
+            
+            document.getElementById('allDonorsList').innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+                    ${sortedDonors.map((donor, index) => `
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                    color: white; 
+                                    padding: 15px; 
+                                    border-radius: 10px; 
+                                    text-align: center;
+                                    font-size: 1.1em;">
+                            ${index + 1}. ${donor}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            // Update stats
+            const monthlyWithDonors = monthlyDonors.filter(item => item.donors !== 'မရှိ').length;
+            document.getElementById('totalDonors').textContent = sortedDonors.length;
+            document.getElementById('monthlyCount').textContent = monthlyWithDonors + englishDateDonors.length;
+            document.getElementById('weeklyCount').textContent = weeklyDonors.length;
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function searchDonors() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const tables = document.querySelectorAll('.schedule-table tbody tr');
+            
+            tables.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Filter all donors list
+            const donorCards = document.querySelectorAll('#allDonorsList > div > div');
+            donorCards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Initialize
+        renderMonthlyTable();
+        renderEnglishDateTable();
+        renderWeeklyTable();
+        renderAllDonors();
+    </script>
+</body>
+</html>
