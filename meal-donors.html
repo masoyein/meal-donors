@@ -192,7 +192,7 @@
         </div>
 
         <div class="content">
-            <input type="text" class="search-box" id="searchBox" placeholder="ကုသိုလ်ရှင်အမည် ရှာရန်..." onkeyup="searchDonors()">
+            <input type="text" class="search-box" id="searchBox" placeholder="နေ့ရက် သို့မဟုတ် ကုသိုလ်ရှင်အမည် ရှာရန်... (ဥပမာ: လဆန်း ၁၀, တနင်္ဂနွေ, ကိုညီညီ)" onkeyup="searchDonors()">
 
             <div class="stats">
                 <div class="stat-card">
@@ -331,16 +331,16 @@
             
             monthlyDonors.forEach(item => {
                 if (item.donors !== 'မရှိ') {
-                    item.donors.split('+').forEach(donor => allDonors.add(donor.trim()));
+                    allDonors.add(item.donors);
                 }
             });
             
             englishDateDonors.forEach(item => {
-                item.donors.split('+').forEach(donor => allDonors.add(donor.trim()));
+                allDonors.add(item.donors);
             });
             
             weeklyDonors.forEach(item => {
-                item.donors.split('+').forEach(donor => allDonors.add(donor.trim()));
+                allDonors.add(item.donors);
             });
 
             const sortedDonors = Array.from(allDonors).sort();
@@ -381,12 +381,44 @@
 
         function searchDonors() {
             const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            
+            if (searchTerm === '') {
+                // If search is empty, show current section only
+                document.querySelectorAll('.section').forEach(section => {
+                    if (!section.classList.contains('active')) {
+                        section.style.display = 'none';
+                    } else {
+                        section.style.display = 'block';
+                    }
+                });
+                
+                // Reset all table rows
+                const tables = document.querySelectorAll('.schedule-table tbody tr');
+                tables.forEach(row => {
+                    row.style.display = '';
+                });
+                
+                const donorCards = document.querySelectorAll('#allDonorsList > div > div');
+                donorCards.forEach(card => {
+                    card.style.display = '';
+                });
+                return;
+            }
+            
+            // When searching, show all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'block';
+            });
+            
+            // Search in tables
             const tables = document.querySelectorAll('.schedule-table tbody tr');
+            let foundAny = false;
             
             tables.forEach(row => {
                 const text = row.textContent.toLowerCase();
                 if (text.includes(searchTerm)) {
                     row.style.display = '';
+                    foundAny = true;
                 } else {
                     row.style.display = 'none';
                 }
@@ -400,6 +432,35 @@
                     card.style.display = '';
                 } else {
                     card.style.display = 'none';
+                }
+            });
+            
+            // Hide section headers if no results in that section
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => {
+                const visibleRows = section.querySelectorAll('.schedule-table tbody tr');
+                let hasVisible = false;
+                visibleRows.forEach(row => {
+                    if (row.style.display !== 'none') {
+                        hasVisible = true;
+                    }
+                });
+                
+                // Always show the section if it has visible results
+                if (section.id === 'all') {
+                    // For "all donors" section, check if any cards are visible
+                    const visibleCards = section.querySelectorAll('#allDonorsList > div > div');
+                    let hasVisibleCards = false;
+                    visibleCards.forEach(card => {
+                        if (card.style.display !== 'none') {
+                            hasVisibleCards = true;
+                        }
+                    });
+                    if (!hasVisibleCards && searchTerm !== '') {
+                        section.style.display = 'none';
+                    }
+                } else if (!hasVisible && searchTerm !== '') {
+                    section.style.display = 'none';
                 }
             });
         }
